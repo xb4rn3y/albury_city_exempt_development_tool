@@ -23,7 +23,7 @@ const Navigation = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-3 group">
               <img 
-                src="/https://wmedia.com.au/wp-content/uploads/2015/03/AlburyCity-client-logo.png" 
+                src="https://wmedia.com.au/wp-content/uploads/2015/03/AlburyCity-client-logo.png" 
                 alt="Albury City Logo" 
                 className="h-10 w-auto group-hover:scale-105 transition-transform duration-200"
               />
