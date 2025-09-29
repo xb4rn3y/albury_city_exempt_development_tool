@@ -25,7 +25,7 @@ const Navigation = () => {
               <img 
                 src="/logo.png" 
                 alt="Albury City Logo" 
-                className="h-16 w-auto group-hover:scale-105 transition-transform duration-200"
+                className="h-12 w-auto group-hover:scale-105 transition-transform duration-200"
               />
               <div>
                 <div className="font-bold text-lg text-primary">Albury City</div>
