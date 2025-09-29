@@ -25,7 +25,7 @@ const Navigation = () => {
               <img 
                 src="https://wmedia.com.au/wp-content/uploads/2015/03/AlburyCity-client-logo.png" 
                 alt="Albury City Logo" 
-                className="h-10 w-auto group-hover:scale-105 transition-transform duration-200"
+                className="h-16 w-auto group-hover:scale-105 transition-transform duration-200"
               />
               <div>
                 <div className="font-bold text-lg text-primary">Albury City</div>
