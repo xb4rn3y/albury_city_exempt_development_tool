@@ -6,10 +6,27 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ExternalLink, MapPin } from "lucide-react";
 import Disclaimer from "@/components/Disclaimer";
+import { InlineHelp } from "@/components/InlineHelp";
+import { FAQSection } from "@/components/FAQSection";
 
 const ZoneCheck = () => {
   const [knowsZone, setKnowsZone] = useState<string>("");
   const navigate = useNavigate();
+
+  const zoneFAQs = [
+    {
+      question: "What is a residential zone?",
+      answer: "A residential zone is a classification that determines what types of buildings and activities are allowed on your property. Different zones (R1, R2, R3, etc.) have different requirements."
+    },
+    {
+      question: "Why is my zone important?",
+      answer: "Your zone determines setback requirements, building heights, and what structures qualify as exempt development. Some structures may be exempt in one zone but not in another."
+    },
+    {
+      question: "Can I change my property's zone?",
+      answer: "Changing a property's zone requires a planning proposal to council, which is a complex process. Most property owners work within their existing zone classification."
+    }
+  ];
 
   const handleContinue = () => {
     if (knowsZone === "yes") {
@@ -33,7 +50,8 @@ const ZoneCheck = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              Do you know which Residential Zone your property is in?
+              Do you know your property's Residential Zone?
+              <InlineHelp content="Your residential zone (e.g., R1, R2, R3) determines what structures and developments are permitted on your property. You can find this information on the NSW Planning Portal." />
             </CardTitle>
             <CardDescription>
               This information is important for determining what structures are permitted on your property.
@@ -83,6 +101,8 @@ const ZoneCheck = () => {
             </Button>
           </CardContent>
         </Card>
+
+        <FAQSection faqs={zoneFAQs} className="max-w-2xl mx-auto" />
 
         <Disclaimer />
       </div>
