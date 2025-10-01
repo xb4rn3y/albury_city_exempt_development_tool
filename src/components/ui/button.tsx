@@ -9,19 +9,19 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary-gradient text-primary-foreground hover:shadow-elevated shadow-soft hover:shadow-glow",
+        default: "bg-primary text-primary-foreground hover:bg-primary-hover hover:shadow-elevated shadow-soft",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-soft hover:shadow-elevated",
         outline:
-          "border border-input bg-background-elevated hover:bg-accent hover:text-accent-foreground shadow-soft hover:shadow-card",
+          "border-2 border-input bg-background-elevated hover:bg-accent hover:text-accent-foreground shadow-soft hover:shadow-card",
         secondary:
-          "bg-secondary-gradient text-secondary-foreground hover:shadow-card shadow-soft",
-        ghost: "hover:bg-accent hover:text-accent-foreground hover:shadow-soft",
+          "bg-secondary text-secondary-foreground hover:bg-secondary-hover shadow-soft hover:shadow-card",
+        ghost: "hover:bg-accent/10 hover:text-foreground hover:shadow-soft text-foreground",
         link: "text-primary underline-offset-4 hover:underline hover:text-primary-hover",
-        hero: "bg-[hsl(215_85%_25%)] text-white hover:bg-gradient-to-br hover:from-[hsl(215_85%_20%)] hover:via-[hsl(215_85%_32%)] hover:to-[hsl(155_70%_58%)] hover:scale-105 shadow-hero text-base font-semibold hover:shadow-glow transition-all duration-300",
-        council: "bg-primary-gradient text-primary-foreground hover:shadow-elevated border border-primary-light shadow-card",
-        accent: "bg-success-gradient text-accent-foreground hover:shadow-accent shadow-soft",
-        modern: "bg-card-gradient text-foreground border border-border hover:border-primary-light shadow-card hover:shadow-elevated",
+        hero: "bg-primary text-primary-foreground hover:bg-primary-hover hover:scale-105 shadow-hero text-base font-semibold hover:shadow-glow transition-all duration-300",
+        council: "bg-primary text-primary-foreground hover:bg-primary-hover hover:shadow-elevated border-2 border-primary/20 shadow-card",
+        accent: "bg-accent text-accent-foreground hover:bg-accent-hover hover:shadow-accent shadow-soft",
+        modern: "bg-card text-card-foreground border-2 border-border hover:border-primary shadow-card hover:shadow-elevated",
       },
       size: {
         default: "h-11 px-6 py-2.5",
