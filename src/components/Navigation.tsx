@@ -26,9 +26,9 @@ const Navigation = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-3 group">
               <img 
-                src="/lovable-uploads/0f99a0d0-782b-438e-9124-19c63c436bd6.png" 
+                src="/logo.png" 
                 alt="Albury City Logo" 
-                className={`h-10 w-auto group-hover:scale-105 transition-all duration-200 ${theme === 'dark' ? 'brightness-0 invert' : ''}`}
+                className={`h-12 w-auto group-hover:scale-105 transition-all duration-200 ${theme === 'dark' ? 'brightness-0 invert' : ''}`}
               />
               <div>
                 <div className="font-bold text-lg text-primary">Albury City</div>
