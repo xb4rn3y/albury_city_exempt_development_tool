@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/components/ThemeProvider";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { theme } = useTheme();
 
   const navItems = [
     { path: "/", label: "Home" },
@@ -17,15 +20,15 @@ const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="bg-card border-b shadow-sm sticky top-0 z-50">
+    <nav className="glass sticky top-0 z-50 border-b border-white/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-3 group">
               <img 
-                src="/logo.png" 
+                src="/lovable-uploads/0f99a0d0-782b-438e-9124-19c63c436bd6.png" 
                 alt="Albury City Logo" 
-                className="h-12 w-auto group-hover:scale-105 transition-transform duration-200"
+                className={`h-10 w-auto group-hover:scale-105 transition-all duration-200 ${theme === 'dark' ? 'brightness-0 invert' : ''}`}
               />
               <div>
                 <div className="font-bold text-lg text-primary">Albury City</div>
@@ -46,10 +49,12 @@ const Navigation = () => {
                 <Link to={item.path}>{item.label}</Link>
               </Button>
             ))}
+            <ThemeToggle />
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-2">
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="icon"
