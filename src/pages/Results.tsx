@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, ArrowLeft, FileText, AlertTriangle, Home } from "lucide-react";
 import Disclaimer from "@/components/Disclaimer";
 import { useEffect } from "react";
-import { celebrateSuccess } from "@/lib/confetti";
+//import { celebrateSuccess } from "@/lib/confetti";
 interface FormData {
   structureType: string;
   length: string;
