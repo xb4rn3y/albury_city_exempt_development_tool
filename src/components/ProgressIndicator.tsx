@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { celebrateStep } from '@/lib/confetti';
 
 interface ProgressStep {
   id: number;
@@ -14,6 +15,16 @@ interface ProgressIndicatorProps {
 }
 
 const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ steps, className }) => {
+  const [prevCompletedCount, setPrevCompletedCount] = useState(0);
+  
+  useEffect(() => {
+    const completedCount = steps.filter(s => s.status === 'completed').length;
+    if (completedCount > prevCompletedCount) {
+      celebrateStep();
+    }
+    setPrevCompletedCount(completedCount);
+  }, [steps]);
+
   return (
     <div className={cn("w-full py-8", className)}>
       <div className="flex items-center justify-between relative">
@@ -39,7 +50,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ steps, className 
               }
             )}>
               {step.status === 'completed' ? (
-                <Check className="w-5 h-5" />
+                <Check className="w-5 h-5 animate-scale-in" />
               ) : (
                 <span className="text-sm font-semibold">{step.id}</span>
               )}
