@@ -29,8 +29,8 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-hero-gradient"></div>
-        <div className="absolute inset-0 bg-primary/20"></div>
+        <div className="absolute inset-0 gradient-animated"></div>
+        <div className="absolute inset-0 bg-primary/10"></div>
         
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
           <div className="animate-fade-in">
