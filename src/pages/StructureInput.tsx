@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Calculator, CheckCircle, Check } from "lucide-react";
 import Disclaimer from "@/components/Disclaimer";
+import { InlineHelp } from "@/components/InlineHelp";
+import { FAQSection } from "@/components/FAQSection";
 
 interface FormData {
   structureType: string;
@@ -34,6 +36,21 @@ const StructureInput = () => {
     rearBoundary: "",
     additionalRequirements: {}
   });
+
+  const structureFAQs = [
+    {
+      question: "What measurements do I need?",
+      answer: "You'll need the length, width, and height of your proposed structure in metres, plus distances from each property boundary."
+    },
+    {
+      question: "How do I measure boundary distances?",
+      answer: "Measure from the closest point of your proposed structure to each property boundary line. Use metres as the unit of measurement."
+    },
+    {
+      question: "What if my measurements aren't exact?",
+      answer: "Try to be as accurate as possible. If unsure, it's better to use slightly larger dimensions to ensure compliance."
+    }
+  ];
 
   const totalSteps = 3;
   const progress = (currentStep / totalSteps) * 100;
@@ -175,39 +192,49 @@ const StructureInput = () => {
 
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="length" className="text-base font-medium">
+                <Label htmlFor="length" className="text-base font-medium flex items-center gap-2">
                   Length (m)
+                  <InlineHelp content="The longest side of your structure in metres" />
                 </Label>
                 <Input
                   id="length"
                   type="number"
                   placeholder="0.00"
+                  min="0"
+                  step="0.1"
                   value={formData.length}
                   onChange={(e) => handleInputChange('length', e.target.value)}
                   className="mt-2"
                 />
               </div>
               <div>
-                <Label htmlFor="width" className="text-base font-medium">
+                <Label htmlFor="width" className="text-base font-medium flex items-center gap-2">
                   Width (m)
+                  <InlineHelp content="The shorter side of your structure in metres" />
                 </Label>
                 <Input
                   id="width"
                   type="number"
                   placeholder="0.00"
+                  min="0"
+                  step="0.1"
                   value={formData.width}
                   onChange={(e) => handleInputChange('width', e.target.value)}
                   className="mt-2"
                 />
               </div>
               <div>
-                <Label htmlFor="height" className="text-base font-medium">
+                <Label htmlFor="height" className="text-base font-medium flex items-center gap-2">
                   Height (m)
+                  <InlineHelp content="Maximum height of your structure from ground to highest point (typically 3.0m limit)" />
                 </Label>
                 <Input
                   id="height"
                   type="number"
                   placeholder="0.00"
+                  min="0"
+                  step="0.1"
+                  max="3.0"
                   value={formData.height}
                   onChange={(e) => handleInputChange('height', e.target.value)}
                   className="mt-2"
@@ -229,39 +256,48 @@ const StructureInput = () => {
 
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="frontBoundary" className="text-base font-medium">
+                <Label htmlFor="frontBoundary" className="text-base font-medium flex items-center gap-2">
                   Front Boundary (m)
+                  <InlineHelp content="Distance from structure to front property line (typically ≥0.9m)" />
                 </Label>
                 <Input
                   id="frontBoundary"
                   type="number"
                   placeholder="0.00"
+                  min="0"
+                  step="0.1"
                   value={formData.frontBoundary}
                   onChange={(e) => handleInputChange('frontBoundary', e.target.value)}
                   className="mt-2"
                 />
               </div>
               <div>
-                <Label htmlFor="sideBoundary" className="text-base font-medium">
+                <Label htmlFor="sideBoundary" className="text-base font-medium flex items-center gap-2">
                   Side Boundary (m)
+                  <InlineHelp content="Distance from structure to side property line (typically ≥0.9m)" />
                 </Label>
                 <Input
                   id="sideBoundary"
                   type="number"
                   placeholder="0.00"
+                  min="0"
+                  step="0.1"
                   value={formData.sideBoundary}
                   onChange={(e) => handleInputChange('sideBoundary', e.target.value)}
                   className="mt-2"
                 />
               </div>
               <div>
-                <Label htmlFor="rearBoundary" className="text-base font-medium">
+                <Label htmlFor="rearBoundary" className="text-base font-medium flex items-center gap-2">
                   Rear Boundary (m)
+                  <InlineHelp content="Distance from structure to rear property line (typically ≥0.9m)" />
                 </Label>
                 <Input
                   id="rearBoundary"
                   type="number"
                   placeholder="0.00"
+                  min="0"
+                  step="0.1"
                   value={formData.rearBoundary}
                   onChange={(e) => handleInputChange('rearBoundary', e.target.value)}
                   className="mt-2"
@@ -446,6 +482,8 @@ const StructureInput = () => {
             </Button>
           )}
         </div>
+        
+        <FAQSection faqs={structureFAQs} className="max-w-2xl mx-auto mt-8" />
         
         <Disclaimer />
       </div>
