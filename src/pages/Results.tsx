@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, ArrowLeft, FileText, AlertTriangle, Home } from "lucide-react";
 import Disclaimer from "@/components/Disclaimer";
+import { useEffect } from "react";
+import { celebrateSuccess } from "@/lib/confetti";
 interface FormData {
   structureType: string;
   length: string;
@@ -374,6 +376,17 @@ const Results = () => {
     rearBoundary: formData?.rearBoundary
   });
   const isExempt = formData ? checks.areaOK && checks.heightOK && checks.frontOK && checks.sideOK && checks.rearOK && additionalRequirementsCheck : false;
+  
+  // Celebrate successful assessment
+  useEffect(() => {
+    if (isExempt) {
+      const timer = setTimeout(() => {
+        celebrateSuccess();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isExempt]);
+  
   const getSEPPClause = () => {
     if (!formData) return "";
     switch (formData.structureType) {
@@ -407,8 +420,14 @@ const Results = () => {
   }
   return <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Print-only header */}
+        <div className="hidden print:block print:mb-6">
+          <h1 className="text-2xl font-bold text-center mb-2">Exempt Development Assessment Results</h1>
+          <p className="text-center text-sm text-muted-foreground">Albury City Council</p>
+        </div>
+
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
+        <div className="mb-8 animate-fade-in print:hidden">
           <Button variant="ghost" onClick={() => navigate(`/structure/${propertyId}`)} className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Structure Details
@@ -425,13 +444,13 @@ const Results = () => {
         </div>
 
         {/* Results Card */}
-        <Card className={`mb-8 shadow-hero animate-slide-up ${isExempt ? 'border-accent' : 'border-destructive'}`}>
+        <Card className={`mb-8 shadow-hero animate-slide-up print:shadow-none print:border print:break-inside-avoid ${isExempt ? 'border-accent' : 'border-destructive'}`}>
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              {isExempt ? <div className="p-4 bg-success-gradient rounded-full">
-                  <CheckCircle className="h-12 w-12 text-accent-foreground" />
-                </div> : <div className="p-4 bg-destructive/10 rounded-full">
-                  <XCircle className="h-12 w-12 text-destructive" />
+              {isExempt ? <div className="p-4 bg-success-gradient rounded-full print:bg-green-50 print:border-2 print:border-green-600">
+                  <CheckCircle className="h-12 w-12 text-accent-foreground print:!text-green-600 print:stroke-[3]" strokeWidth={2} />
+                </div> : <div className="p-4 bg-destructive/10 rounded-full print:bg-red-50 print:border-2 print:border-red-600">
+                  <XCircle className="h-12 w-12 text-destructive print:!text-red-600 print:stroke-[3]" strokeWidth={2} />
                 </div>}
             </div>
             <CardTitle className="text-2xl">
@@ -501,7 +520,7 @@ const Results = () => {
         </Card>
 
         {/* Additional Requirements Assessment */}
-        {formData.additionalRequirements && Object.keys(formData.additionalRequirements).length > 0 && <Card className="mb-8 shadow-card">
+        {formData.additionalRequirements && Object.keys(formData.additionalRequirements).length > 0 && <Card className="mb-8 shadow-card print:shadow-none print:border print:break-inside-avoid print:mt-4">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <CheckCircle className="mr-2 h-5 w-5 text-primary" />
@@ -591,12 +610,12 @@ const Results = () => {
                             <Badge variant="default" className="bg-muted text-muted-foreground">
                               Info
                             </Badge>
-                          ) : (
-                            <Badge variant="default" className="bg-accent text-accent-foreground">
-                              <CheckCircle className="mr-1 h-3 w-3" />
-                              Pass
-                            </Badge>
-                          )}
+                           ) : (
+                             <Badge variant="default" className="bg-accent text-accent-foreground print:!bg-green-600 print:!text-white">
+                               <CheckCircle className="mr-1 h-3 w-3" />
+                               Pass
+                             </Badge>
+                           )}
                         </div>
                       </div>);
 
@@ -632,13 +651,13 @@ const Results = () => {
                                   <span className="text-xs text-muted-foreground">
                                     Answer: {userAnswer ? 'Yes' : 'No'}
                                   </span>
-                                  {shouldShowPass ? <Badge variant="default" className="bg-accent text-accent-foreground">
-                                      <CheckCircle className="mr-1 h-3 w-3" />
-                                      Pass
-                                    </Badge> : <Badge variant="destructive">
-                                      <XCircle className="mr-1 h-3 w-3" />
-                                      Fail
-                                    </Badge>}
+                                   {shouldShowPass ? <Badge variant="default" className="bg-accent text-accent-foreground print:!bg-green-600 print:!text-white">
+                                       <CheckCircle className="mr-1 h-3 w-3" />
+                                       Pass
+                                     </Badge> : <Badge variant="destructive" className="print:!bg-red-600 print:!text-white">
+                                       <XCircle className="mr-1 h-3 w-3" />
+                                       Fail
+                                     </Badge>}
                                 </div>
                               </div>);
                       }
@@ -650,10 +669,10 @@ const Results = () => {
                                 <span className="text-xs text-muted-foreground">
                                   Not applicable
                                 </span>
-                                <Badge variant="default" className="bg-accent text-accent-foreground">
-                                  <CheckCircle className="mr-1 h-3 w-3" />
-                                  Pass
-                                </Badge>
+                                 <Badge variant="default" className="bg-accent text-accent-foreground print:!bg-green-600 print:!text-white">
+                                   <CheckCircle className="mr-1 h-3 w-3" />
+                                   Pass
+                                 </Badge>
                               </div>
                             </div>);
                     }
@@ -671,13 +690,13 @@ const Results = () => {
                           <span className="text-xs text-muted-foreground">
                             Answer: {userAnswer ? 'Yes' : 'No'}
                           </span>
-                          {isPassing ? <Badge variant="default" className="bg-accent text-accent-foreground">
-                              <CheckCircle className="mr-1 h-3 w-3" />
-                              Pass
-                            </Badge> : <Badge variant="destructive">
-                              <XCircle className="mr-1 h-3 w-3" />
-                              Fail
-                            </Badge>}
+                           {isPassing ? <Badge variant="default" className="bg-accent text-accent-foreground print:!bg-green-600 print:!text-white">
+                               <CheckCircle className="mr-1 h-3 w-3" />
+                               Pass
+                             </Badge> : <Badge variant="destructive" className="print:!bg-red-600 print:!text-white">
+                               <XCircle className="mr-1 h-3 w-3" />
+                               Fail
+                             </Badge>}
                         </div>
                       </div>);
               });
@@ -694,7 +713,7 @@ const Results = () => {
           </Card>}
 
         {/* SEPP Reference */}
-        <Card className="mb-8 shadow-card">
+        <Card className="mb-8 shadow-card print:hidden">
           <CardHeader>
             <CardTitle className="flex items-center">
               <FileText className="mr-2 h-5 w-5 text-primary" />
@@ -710,7 +729,7 @@ const Results = () => {
         </Card>
 
         {/* Detailed Requirements */}
-        <Card className="mb-8 shadow-card">
+        <Card className="mb-8 shadow-card print:hidden">
           <CardHeader>
             <CardTitle className="flex items-center">
               <AlertTriangle className="mr-2 h-5 w-5 text-primary" />
@@ -841,7 +860,7 @@ const Results = () => {
         </Card>
 
         {/* Next Steps */}
-        <Card className="mb-8 shadow-card">
+        <Card className="mb-8 shadow-card print:hidden">
           <CardHeader>
             <CardTitle className="flex items-center">
               {isExempt ? <CheckCircle className="mr-2 h-5 w-5 text-accent" /> : <AlertTriangle className="mr-2 h-5 w-5 text-destructive" />}
@@ -874,7 +893,7 @@ const Results = () => {
 
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center print:hidden">
           <Button variant="council" onClick={() => navigate('/properties')}>
             <Home className="mr-2 h-4 w-4" />
             New Assessment
@@ -885,7 +904,9 @@ const Results = () => {
           </Button>
         </div>
         
-        <Disclaimer />
+        <div className="print:hidden">
+          <Disclaimer />
+        </div>
       </div>
     </div>;
 };
