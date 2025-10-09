@@ -19,7 +19,7 @@ interface FormData {
   frontBoundary: string;
   sideBoundary: string;
   rearBoundary: string;
-  additionalRequirements: Record<string, boolean>;
+  additionalRequirements: Record<string, boolean | 'unsure'>;
 }
 
 const StructureInput = () => {
@@ -59,7 +59,7 @@ const StructureInput = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleRequirementChange = (requirement: string, value: boolean) => {
+  const handleRequirementChange = (requirement: string, value: boolean | 'unsure') => {
     setFormData(prev => ({
       ...prev,
       additionalRequirements: {
@@ -333,7 +333,7 @@ const StructureInput = () => {
                 return (
                   <div key={requirement.key} className="p-4 border rounded-lg space-y-3">
                     <p className="text-sm font-medium">{requirement.label}</p>
-                    <div className="flex gap-4">
+                    <div className="flex gap-3">
                       <Button
                         variant={formData.additionalRequirements[requirement.key] === true ? "default" : "outline"}
                         size="sm"
@@ -348,6 +348,14 @@ const StructureInput = () => {
                         onClick={() => handleRequirementChange(requirement.key, false)}
                       >
                         ✕ No
+                      </Button>
+                      <Button
+                        variant={formData.additionalRequirements[requirement.key] === 'unsure' ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleRequirementChange(requirement.key, 'unsure')}
+                        className={formData.additionalRequirements[requirement.key] === 'unsure' ? "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500" : ""}
+                      >
+                        ? Unsure
                       </Button>
                     </div>
                   </div>
