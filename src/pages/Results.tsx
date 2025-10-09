@@ -3,10 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, XCircle, ArrowLeft, FileText, AlertTriangle, Home } from "lucide-react";
+import { CheckCircle, XCircle, ArrowLeft, FileText, AlertTriangle, Home, AlertCircle } from "lucide-react";
 import Disclaimer from "@/components/Disclaimer";
 import { useEffect } from "react";
-//import { celebrateSuccess } from "@/lib/confetti";
+
 interface FormData {
   structureType: string;
   length: string;
@@ -15,7 +15,7 @@ interface FormData {
   frontBoundary: string;
   sideBoundary: string;
   rearBoundary: string;
-  additionalRequirements: Record<string, boolean>;
+  additionalRequirements: Record<string, boolean | 'unsure'>;
 }
 const Results = () => {
   const {
@@ -332,6 +332,20 @@ const Results = () => {
     sideOK: false,
     rearOK: false
   };
+  // Check for unsure conditions
+  const unsureRequirements = formData ? (() => {
+    const requirements = getRequirementsForStructure(formData.structureType);
+    return requirements.filter(req => {
+      if (req.dependsOn) {
+        const parentAnswer = formData.additionalRequirements[req.dependsOn];
+        if (parentAnswer !== req.showIf) {
+          return false; // Not applicable
+        }
+      }
+      return formData.additionalRequirements[req.key] === 'unsure';
+    }).map(req => req.label);
+  })() : [];
+
   const additionalRequirementsCheck = formData ? (() => {
     const requirements = getRequirementsForStructure(formData.structureType);
     console.log('Validating requirements:', requirements.map(req => ({
@@ -348,6 +362,11 @@ const Results = () => {
         }
       }
       const userAnswer = formData.additionalRequirements[req.key];
+
+      // Allow 'unsure' as a valid answer (not a fail)
+      if (userAnswer === 'unsure') {
+        return true;
+      }
 
       // For conditional questions (correctAnswer is null), just check if user provided an answer
       if (req.correctAnswer === null) {
@@ -375,7 +394,9 @@ const Results = () => {
     sideRearMin,
     rearBoundary: formData?.rearBoundary
   });
-  const isExempt = formData ? checks.areaOK && checks.heightOK && checks.frontOK && checks.sideOK && checks.rearOK && additionalRequirementsCheck : false;
+  const hasUnsureConditions = unsureRequirements.length > 0;
+  const isExempt = formData ? checks.areaOK && checks.heightOK && checks.frontOK && checks.sideOK && checks.rearOK && additionalRequirementsCheck && !hasUnsureConditions : false;
+  const requiresReview = formData ? checks.areaOK && checks.heightOK && checks.frontOK && checks.sideOK && checks.rearOK && additionalRequirementsCheck && hasUnsureConditions : false;
   
   // Celebrate successful assessment
   useEffect(() => {
@@ -444,20 +465,22 @@ const Results = () => {
         </div>
 
         {/* Results Card */}
-        <Card className={`mb-8 shadow-hero animate-slide-up print:shadow-none print:border print:break-inside-avoid ${isExempt ? 'border-accent' : 'border-destructive'}`}>
+        <Card className={`mb-8 shadow-hero animate-slide-up print:shadow-none print:border print:break-inside-avoid ${isExempt ? 'border-accent' : requiresReview ? 'border-yellow-500' : 'border-destructive'}`}>
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               {isExempt ? <div className="p-4 bg-success-gradient rounded-full print:bg-green-50 print:border-2 print:border-green-600">
                   <CheckCircle className="h-12 w-12 text-accent-foreground print:!text-green-600 print:stroke-[3]" strokeWidth={2} />
+                </div> : requiresReview ? <div className="p-4 bg-yellow-500/10 rounded-full print:bg-yellow-50 print:border-2 print:border-yellow-500">
+                  <AlertCircle className="h-12 w-12 text-yellow-500 print:!text-yellow-500 print:stroke-[3]" strokeWidth={2} />
                 </div> : <div className="p-4 bg-destructive/10 rounded-full print:bg-red-50 print:border-2 print:border-red-600">
                   <XCircle className="h-12 w-12 text-destructive print:!text-red-600 print:stroke-[3]" strokeWidth={2} />
                 </div>}
-            </div>
+             </div>
             <CardTitle className="text-2xl">
-              {isExempt ? <span className="text-accent">Approved for Exempt Development</span> : <span className="text-destructive">Development Application Required</span>}
+              {isExempt ? <span className="text-accent">Approved for Exempt Development</span> : requiresReview ? <span className="text-yellow-600">Review Required</span> : <span className="text-destructive">Development Application Required</span>}
             </CardTitle>
             <CardDescription className="text-base">
-              {isExempt ? "Your proposed structure meets all requirements for exempt development under NSW SEPP." : "Your proposed structure requires a development application to be submitted to Council"}
+              {isExempt ? "Your proposed structure meets all requirements for exempt development under NSW SEPP." : requiresReview ? "Your structure meets basic requirements, but some conditions need verification before proceeding as exempt development." : "Your proposed structure requires a development application to be submitted to Council"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -518,6 +541,29 @@ const Results = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Unsure Conditions Warning */}
+        {hasUnsureConditions && <Card className="mb-8 shadow-card border-yellow-500 print:shadow-none print:border print:break-inside-avoid">
+            <CardHeader>
+              <CardTitle className="flex items-center text-yellow-600">
+                <AlertCircle className="mr-2 h-5 w-5" />
+                Conditions Requiring Verification
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-3">
+                You marked the following requirements as "unsure". Please verify these conditions before proceeding:
+              </p>
+              <ul className="space-y-2">
+                {unsureRequirements.map((req, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">{req}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>}
 
         {/* Additional Requirements Assessment */}
         {formData.additionalRequirements && Object.keys(formData.additionalRequirements).length > 0 && <Card className="mb-8 shadow-card print:shadow-none print:border print:break-inside-avoid print:mt-4">
@@ -596,6 +642,7 @@ const Results = () => {
                     }
                   }
                   const userAnswer = formData.additionalRequirements[req.key];
+                  if (userAnswer === 'unsure') return true; // Unsure is treated as passing for display purposes
                   return userAnswer === req.correctAnswer;
                 });
 
@@ -604,9 +651,14 @@ const Results = () => {
                         <span className="text-sm flex-1 font-medium">{mainReq.label}</span>
                         <div className="flex items-center gap-2 ml-4">
                           <span className="text-xs text-muted-foreground">
-                            Answer: {mainAnswer ? 'Yes' : 'No'}
+                            Answer: {mainAnswer === 'unsure' ? 'Unsure' : mainAnswer ? 'Yes' : 'No'}
                           </span>
-                          {mainAnswer ? (
+                          {mainAnswer === 'unsure' ? (
+                            <Badge variant="default" className="bg-yellow-500 text-white">
+                              <AlertCircle className="mr-1 h-3 w-3" />
+                              Unsure
+                            </Badge>
+                          ) : mainAnswer ? (
                             <Badge variant="default" className="bg-muted text-muted-foreground">
                               Info
                             </Badge>
@@ -634,24 +686,37 @@ const Results = () => {
                                 <span className="text-sm flex-1 font-medium">{subReq.label}</span>
                                 <div className="flex items-center gap-2 ml-4">
                                   <span className="text-xs text-muted-foreground">
-                                    Answer: {userAnswer ? 'Yes' : 'No'}
+                                    Answer: {userAnswer === 'unsure' ? 'Unsure' : userAnswer ? 'Yes' : 'No'}
                                   </span>
-                                  <Badge variant="default" className="bg-muted text-muted-foreground">
-                                    Info
-                                  </Badge>
+                                  {userAnswer === 'unsure' ? (
+                                    <Badge variant="default" className="bg-yellow-500 text-white">
+                                      <AlertCircle className="mr-1 h-3 w-3" />
+                                      Unsure
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="default" className="bg-muted text-muted-foreground">
+                                      Info
+                                    </Badge>
+                                  )}
                                 </div>
                               </div>);
                       } else {
                         // This is a pass/fail question
+                        const isUnsure = userAnswer === 'unsure';
                         const individualPass = userAnswer === subReq.correctAnswer;
                         const shouldShowPass = allConditionsPass || individualPass;
                         renderItems.push(<div key={subReq.key} className="flex items-start justify-between p-3 rounded-lg border ml-4">
                                 <span className="text-sm flex-1 font-medium">{subReq.label}</span>
                                 <div className="flex items-center gap-2 ml-4">
                                   <span className="text-xs text-muted-foreground">
-                                    Answer: {userAnswer ? 'Yes' : 'No'}
+                                    Answer: {userAnswer === 'unsure' ? 'Unsure' : userAnswer ? 'Yes' : 'No'}
                                   </span>
-                                   {shouldShowPass ? <Badge variant="default" className="bg-accent text-accent-foreground print:!bg-green-600 print:!text-white">
+                                   {isUnsure ? (
+                                     <Badge variant="default" className="bg-yellow-500 text-white">
+                                       <AlertCircle className="mr-1 h-3 w-3" />
+                                       Unsure
+                                     </Badge>
+                                   ) : shouldShowPass ? <Badge variant="default" className="bg-accent text-accent-foreground print:!bg-green-600 print:!text-white">
                                        <CheckCircle className="mr-1 h-3 w-3" />
                                        Pass
                                      </Badge> : <Badge variant="destructive" className="print:!bg-red-600 print:!text-white">
@@ -683,14 +748,20 @@ const Results = () => {
               // Render standalone requirements
               standaloneRequirements.forEach(requirement => {
                 const userAnswer = formData.additionalRequirements[requirement.key];
+                const isUnsure = userAnswer === 'unsure';
                 const isPassing = userAnswer === requirement.correctAnswer;
                 renderItems.push(<div key={requirement.key} className="flex items-start justify-between p-3 rounded-lg border">
                         <span className="text-sm flex-1 font-medium">{requirement.label}</span>
                         <div className="flex items-center gap-2 ml-4">
                           <span className="text-xs text-muted-foreground">
-                            Answer: {userAnswer ? 'Yes' : 'No'}
+                            Answer: {userAnswer === 'unsure' ? 'Unsure' : userAnswer ? 'Yes' : 'No'}
                           </span>
-                           {isPassing ? <Badge variant="default" className="bg-accent text-accent-foreground print:!bg-green-600 print:!text-white">
+                           {isUnsure ? (
+                             <Badge variant="default" className="bg-yellow-500 text-white">
+                               <AlertCircle className="mr-1 h-3 w-3" />
+                               Unsure
+                             </Badge>
+                           ) : isPassing ? <Badge variant="default" className="bg-accent text-accent-foreground print:!bg-green-600 print:!text-white">
                                <CheckCircle className="mr-1 h-3 w-3" />
                                Pass
                              </Badge> : <Badge variant="destructive" className="print:!bg-red-600 print:!text-white">
@@ -863,19 +934,54 @@ const Results = () => {
         <Card className="mb-8 shadow-card print:hidden">
           <CardHeader>
             <CardTitle className="flex items-center">
-              {isExempt ? <CheckCircle className="mr-2 h-5 w-5 text-accent" /> : <AlertTriangle className="mr-2 h-5 w-5 text-destructive" />}
+              {isExempt ? <CheckCircle className="mr-2 h-5 w-5 text-accent" /> : requiresReview ? <AlertCircle className="mr-2 h-5 w-5 text-yellow-500" /> : <AlertTriangle className="mr-2 h-5 w-5 text-destructive" />}
               Next Steps
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isExempt ? <div className="space-y-4">
-                <p className="text-accent font-medium">Your development can proceed as exempt development, providing Additional Requirements are met!</p>
+                <p className="text-accent font-medium">Your development can proceed as exempt development!</p>
+                <div className="bg-accent/10 p-3 rounded-lg mb-3">
+                  <p className="text-sm font-medium mb-2">✓ Requirements Met:</p>
+                  <ul className="space-y-1 text-sm">
+                    <li>• Area requirements met</li>
+                    <li>• Height requirements met</li>
+                    <li>• Boundary setback requirements met</li>
+                    <li>• All additional requirements met</li>
+                  </ul>
+                </div>
                 <ul className="space-y-2 text-sm">
                   <li>• No development application required</li>
                   <li>• Ensure compliance with all building codes</li>
                   <li>• Consider any relevant environmental or heritage overlays</li>
                   <li>• Check for any utility connections required</li>
                 </ul>
+              </div> : requiresReview ? <div className="space-y-4">
+                <p className="text-yellow-600 font-medium">Review Required: Verify conditions before proceeding</p>
+                <div className="bg-accent/10 p-3 rounded-lg mb-3">
+                  <p className="text-sm font-medium mb-2">✓ Requirements Met:</p>
+                  <ul className="space-y-1 text-sm">
+                    <li>• Area requirements met</li>
+                    <li>• Height requirements met</li>
+                    <li>• Boundary setback requirements met</li>
+                    <li>• Other additional requirements met</li>
+                  </ul>
+                </div>
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg mb-3">
+                  <p className="text-sm font-medium mb-2 text-yellow-700 dark:text-yellow-500">⚠ Requires Verification:</p>
+                  <p className="text-sm text-yellow-600 dark:text-yellow-400 mb-2">
+                    Some conditions were marked as "unsure" and need to be verified before proceeding.
+                  </p>
+                </div>
+                <div className="mt-4">
+                  <p className="font-medium text-sm mb-2">Next Steps:</p>
+                  <ul className="space-y-2 text-sm">
+                    <li>• Review the conditions marked as "unsure" in the warning section above</li>
+                    <li>• Verify these conditions by consulting relevant documentation or experts</li>
+                    <li>• Once verified, if all conditions are met, proceed as exempt development</li>
+                    <li>• If any condition is not met, contact Albury City Council for guidance</li>
+                  </ul>
+                </div>
               </div> : <div className="space-y-4">
                 <p className="text-destructive font-medium">Development Application Required: Your proposed structure does not meet all requirements for exempt development.</p>
                 <div className="mt-4">
