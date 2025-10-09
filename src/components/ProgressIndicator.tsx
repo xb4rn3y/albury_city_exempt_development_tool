@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-//import { celebrateStep } from '@/lib/confetti';
 
 interface ProgressStep {
   id: number;
