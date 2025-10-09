@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { MessageCircle, Bot, User, Lightbulb, CheckCircle, XCircle, ExternalLink, Home, Volume2, VolumeX } from "lucide-react";
+import { MessageCircle, Bot, User, Lightbulb, CheckCircle, XCircle, ExternalLink, Home, Volume2, VolumeX, AlertCircle } from "lucide-react";
 import Disclaimer from "@/components/Disclaimer";
 
 interface ChatState {
@@ -22,7 +22,7 @@ interface ChatState {
   frontBoundary: string;
   sideBoundary: string;
   rearBoundary: string;
-  additionalRequirements: Record<string, boolean>;
+  additionalRequirements: Record<string, boolean | 'unsure'>;
   currentRequirementIndex: number;
 }
 
@@ -537,6 +537,11 @@ const Chatbot = () => {
       }
       const userAnswer = additionalRequirements[req.key];
 
+      // Treat 'unsure' as passing the check
+      if (userAnswer === 'unsure') {
+        return true;
+      }
+
       // For conditional questions (correctAnswer is null), just check if user provided an answer
       if (req.correctAnswer === null) {
         return userAnswer !== undefined;
@@ -555,22 +560,42 @@ const Chatbot = () => {
         }
       }
       const userAnswer = additionalRequirements[req.key];
+      
+      // Don't count 'unsure' as failed
+      if (userAnswer === 'unsure') {
+        return false;
+      }
+      
       if (req.correctAnswer === null) {
         return userAnswer === undefined;
       }
       return userAnswer !== req.correctAnswer;
     });
 
+    // Get unsure requirements for review
+    const unsureRequirements = requirements.filter(req => {
+      if (req.dependsOn) {
+        const parentAnswer = additionalRequirements[req.dependsOn];
+        if (parentAnswer !== req.showIf) {
+          return false;
+        }
+      }
+      return additionalRequirements[req.key] === 'unsure';
+    });
+
     const isExempt = Object.values(checks).every(check => check) && additionalRequirementsCheck;
+    const requiresReview = Object.values(checks).every(check => check) && additionalRequirementsCheck && unsureRequirements.length > 0;
 
     return {
       isExempt,
+      requiresReview,
       area,
       maxArea,
       maxHeight,
       minSetback,
       checks,
-      failedAdditional
+      failedAdditional,
+      unsureRequirements
     };
   };
 
@@ -871,7 +896,7 @@ Once you've found your lot size information, come back and we'll continue with y
     return flattenedRequirements[chatState.currentRequirementIndex];
   };
 
-  const handleAdditionalRequirementAnswer = (answer: boolean) => {
+  const handleAdditionalRequirementAnswer = (answer: boolean | 'unsure') => {
     const currentReq = getCurrentRequirement();
     if (!currentReq) return;
 
@@ -881,7 +906,7 @@ Once you've found your lot size information, come back and we'll continue with y
       [currentReq.key]: answer
     };
 
-    addMessage(answer ? "Yes" : "No", 'user');
+    addMessage(answer === 'unsure' ? "Unsure" : answer ? "Yes" : "No", 'user');
 
     setTimeout(() => {
       setChatState(prev => ({ 
@@ -955,6 +980,12 @@ Once you've found your lot size information, come back and we'll continue with y
               }
             }
             const userAnswer = additionalRequirements[req.key];
+            
+            // Treat 'unsure' as passing
+            if (userAnswer === 'unsure') {
+              return true;
+            }
+            
             if (req.correctAnswer === null) {
               return userAnswer !== undefined;
             }
@@ -970,13 +1001,31 @@ Once you've found your lot size information, come back and we'll continue with y
               }
             }
             const userAnswer = additionalRequirements[req.key];
+            
+            // Don't count 'unsure' as failed
+            if (userAnswer === 'unsure') {
+              return false;
+            }
+            
             if (req.correctAnswer === null) {
               return userAnswer === undefined;
             }
             return userAnswer !== req.correctAnswer;
           });
 
+          // Get unsure requirements
+          const unsureRequirements = requirements.filter(req => {
+            if (req.dependsOn) {
+              const parentAnswer = additionalRequirements[req.dependsOn];
+              if (parentAnswer !== req.showIf) {
+                return false;
+              }
+            }
+            return additionalRequirements[req.key] === 'unsure';
+          });
+
           const isExempt = Object.values(checks).every(check => check) && additionalRequirementsCheck;
+          const requiresReview = Object.values(checks).every(check => check) && additionalRequirementsCheck && unsureRequirements.length > 0;
           
           if (true) {
             
@@ -985,7 +1034,23 @@ Once you've found your lot size information, come back and we'll continue with y
             let resultText = `**Assessment Complete!**\n\n`;
             resultText += `Your ${chatState.structureType} (${area.toFixed(1)}m²) in ${chatState.zone} zone on a ${propertyTypeLabel}:\n\n`;
             
-            if (isExempt) {
+            if (requiresReview) {
+              resultText += `⚠️ **REVIEW REQUIRED**\n\n`;
+              resultText += `All dimensional requirements and other additional requirements are met, but you marked some conditions as "Unsure":\n`;
+              resultText += `• Area: ${area.toFixed(1)}m² ≤ ${maxArea}m² ✓\n`;
+              resultText += `• Height: ${chatState.height}m ≤ 3m ✓\n`;
+              resultText += `• Setbacks: All boundaries compliant ✓\n`;
+              resultText += `• Other Additional Requirements: Met ✓\n\n`;
+              
+              resultText += `**Conditions Marked as Unsure:**\n`;
+              unsureRequirements.forEach(req => {
+                resultText += `• ${req.label}\n`;
+              });
+              resultText += `\n**Next Steps:**\n`;
+              resultText += `• Verify the above conditions for your structure\n`;
+              resultText += `• Contact Albury City Council for clarification\n`;
+              resultText += `• Once confirmed, re-run the assessment with definitive answers\n`;
+            } else if (isExempt) {
               resultText += `✅ **QUALIFIES as Exempt Development**\n\n`;
               resultText += `All dimensional and additional requirements are met:\n`;
               resultText += `• Area: ${area.toFixed(1)}m² ≤ ${maxArea}m² ✓\n`;
@@ -1415,6 +1480,14 @@ Once you've found your lot size information, come back and we'll continue with y
                 onClick={() => handleAdditionalRequirementAnswer(false)}
               >
                 No
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start h-auto p-4 text-left border-yellow-500/50 hover:bg-yellow-500/10"
+                onClick={() => handleAdditionalRequirementAnswer('unsure')}
+              >
+                <AlertCircle className="h-4 w-4 mr-2 text-yellow-600" />
+                Unsure
               </Button>
             </div>
           </div>
